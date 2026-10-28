@@ -1,0 +1,80 @@
+name: Unpack uploaded zip
+
+on:
+  push:
+    paths:
+      - "*.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    outputs:
+      unpacked: ${{ steps.unpack.outputs.unpacked }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack the zip into this branch
+        id: unpack
+        run: |
+          zipfile="$(ls -1 ./*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$zipfile" ]; then
+            echo "No zip found, nothing to do."
+            echo "unpacked=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Unpacking $zipfile"
+          unzip -q -o "$zipfile"
+          rm -f "$zipfile"
+          git config user.name "unpack-bot"
+          git config user.email "unpack-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack uploaded zip"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo "unpacked=true" >> "$GITHUB_OUTPUT"
+
+  verify:
+    needs: unpack
+    if: needs.unpack.outputs.unpacked == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        id: typecheck
+        run: npx tsc --noEmit
+        continue-on-error: true
+      - name: Tests
+        id: tests
+        run: npm test
+        continue-on-error: true
+      - name: Build
+        id: build
+        run: npm run build
+        continue-on-error: true
+      - name: Results
+        run: |
+          {
+            echo "## Check results"
+            echo "- typecheck: ${{ steps.typecheck.outcome }}"
+            echo "- tests: ${{ steps.tests.outcome }}"
+            echo "- build: ${{ steps.build.outcome }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit regenerated route tree
+        if: steps.build.outcome == 'success'
+        run: |
+          git config user.name "unpack-bot"
+          git config user.email "unpack-bot@users.noreply.github.com"
+          if ! git diff --quiet -- src/routeTree.gen.ts; then
+            git add src/routeTree.gen.ts
+            git commit -m "Regenerate route tree"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
