@@ -1,0 +1,57 @@
+{
+  "name": "orbit-ai-ultimate",
+  "version": "4.0.0",
+  "private": true,
+  "description": "A modular multi-provider AI workspace with chat, model arbitration, projects, files, and research.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 0.0.0.0\" \"node --watch server/index.js\"",
+    "build": "tsc --noEmit && vite build",
+    "start": "node server/index.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "file-type": "^21.0.0",
+    "helmet": "^8.1.0",
+    "katex": "^0.16.22",
+    "mammoth": "^1.10.0",
+    "marked": "^16.2.1",
+    "multer": "^2.0.2",
+    "pdf-parse": "1.1.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "prisma": "^6.14.0",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "lucide-react": "^0.542.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "rehype-katex": "^7.0.1",
+    "rehype-highlight": "^7.0.2",
+    "@types/marked": "^6.0.0"
+  }
+}
